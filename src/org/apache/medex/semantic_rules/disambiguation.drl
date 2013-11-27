@@ -1,0 +1,90 @@
+package org.apache.medex.semantic_rules
+#created on: Aug 14, 2011
+#list any import classes here.
+#declare any global variables here
+
+import org.apache.medex.semantic_rules.tags
+import org.apache.medex.semantic_rules.result_bean;
+global result_bean result;
+
+
+rule "rule1_1"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "DDF-DOSEUNIT" )
+		b : tags( pos == ( a.index - 1 ) && a.index > "0" && tag == "NUM" )
+	then
+		result.setFinal_tag( "DOSEUNIT" );
+		//System.out.println("disambiguation rule1_1");
+end
+
+
+rule "rule1_2"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "DDF-DOSEUNIT" )
+		b : tags( pos == ( a.index -1 ) && (a.index <= 0 || tag != "NUM") )
+	then
+		result.setFinal_tag( "DDF" );
+		//System.out.println("disambiguation rule1_2");
+end
+
+rule "rule2_1"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "TOD-UNIT" )
+		b : tags( pos == ( a.index - 1 ) && a.index > "0" && tag == "NUM" )
+	then
+		result.setFinal_tag( "UNIT" );
+		//System.out.println("rule2_1")
+end
+
+
+rule "rule2_2"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "TOD-UNIT" )
+		b : tags( pos == ( a.index -1 ) && (a.index <= 0 || tag != "NUM") )
+	then
+		result.setFinal_tag( "TOD" );
+		//System.out.println("rule2_2");
+end
+
+
+rule "rule3_1"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && term == "pt" )
+	then
+		result.setFinal_tag( "RUT" );
+end
+
+rule "rule4_1"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "DOSEUNIT-RUT" )
+		b : tags( pos == ( a.index - 1 ) && a.index > "0" && tag == "NUM" )
+	then
+		result.setFinal_tag( "DOSEUNIT" );
+end
+
+
+rule "rule4_2"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "DOSEUNIT-RUT" )
+		b : tags( pos == ( a.index -1 ) && (a.index <= 0 || tag != "NUM") )
+	then
+		result.setFinal_tag( "RUT" );
+end
+
+
+rule "rule5_1"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && (tag != "DDF-DOSEUNIT" && tag != "TOD-UNIT" && tag != "DOSEUNIT-RUT") )
+	then
+		result.setDefault_tag(a.tag);
+end
+
+
