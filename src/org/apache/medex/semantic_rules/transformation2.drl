@@ -1,0 +1,193 @@
+package org.apache.medex.semantic_rules
+#created on: Aug 14, 2011
+#list any import classes here.
+#declare any global variables here
+
+import org.apache.medex.semantic_rules.tags
+import org.apache.medex.semantic_rules.result_bean;
+global result_bean result;
+
+// Transformation 2////////////////////////////////
+
+
+
+
+rule "rule 6"
+	dialect "mvel"
+	when
+		a : tags( (pos == index) && (tag == "NUM") &&(prevTag == "DIN" || prevTag == "DBN" || prevTag == "DPN") )
+	then
+		
+		result.setFinal_token(a.term);
+		result.setFinal_tag("DOSE");
+		result.setFinal_index(a.pos);
+		//System.out.println();
+		//System.out.println("** Rule 6 **");
+		//System.out.println(a.pos +" -- "+ b.pos)
+		//System.out.println(a.tag +" -- "+ b.tag)
+		//System.out.println(a.term +" -- "+ b.term)
+		//System.out.println((a.term));
+		//System.out.println(("DOSE"));
+		//System.out.println((a.pos));
+		
+end
+
+rule "rule t1_1"
+	dialect "mvel"
+	when
+		a : tags( (pos == index) && (tag == "NUM") && (prevTag == "DOSE" || prevTag == "DIN" || prevTag == "DBN" || prevTag == "DPN") )
+		b : tags( pos == ( a.pos + 1 ) && (tag == "FREQ" || tag == "RUT") )
+		
+	then
+		result.setFinal_tag("DOSEAMT");
+		//System.out.println(a.pos+" ** "+a.tag+" ** "+a.term);
+		//System.out.println(b.pos+" ** "+b.tag+" ** "+b.term);
+		//System.out.println(c.pos+" ** "+c.tag+" ** "+c.term);
+		//System.out.println("Rule t1_1");
+end
+
+rule "rule t1_2"
+	dialect "mvel"
+	when
+		a : tags( index > "0" && pos == index && (tag == "NUM" || tag == "UNIT" ||tag == "TUNIT" || tag == "DOSEUNIT"))
+		b : tags( pos == ( a.pos - 1 ) && (term == ",") )
+		c : tags( pos == ( a.pos + 1 ) && (tag == "FREQ" || tag == "RUT") )
+		
+	then
+		result.setFinal_tag("DOSEAMT");
+		//System.out.println("Rule t1_2");
+end
+
+
+rule "rule t2"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && tag == "DOSE" )
+		e : tags( pos == ( a.pos + 1 ) && (term == "to" || term == "-" || term == "~") )
+		f : tags( pos == ( a.pos + 2 ) && (tag == "DOSE") )
+	then
+		result.setFinal_token(a.term + " " + e.term +" " + f.term);
+		result.setFinal_tag("DOSE");
+		result.setFinal_index(a.pos + 2);
+		//System.out.println("Rule t2");
+end
+
+rule "rule t3"
+	dialect "mvel"
+	when
+		a : tags( pos == index && (tag == "DIN" || tag == "DBN" || tag == "DPN" || tag == "DSCD" || tag == "DSCDF" || tag == "DSCDC") )
+		b : tags( pos == ( a.pos + 1 ) && (term == "/" || term == ":" || term == "+" || term == "w" || term == "with") )
+		c : tags( pos == ( a.pos + 2 ) && (tag == "DIN" || tag == "DBN" || tag == "DPN" || tag == "DSCD" || tag == "DSCDF" || tag == "DSCDC") )
+	then
+		result.setFinal_token(a.term + " " + b.term +" " + c.term);
+		result.setFinal_tag("DIN");
+		result.setFinal_index(a.pos + 2);
+		//System.out.println("Rule t3");
+end
+
+rule "rule t4"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && (tag == "DIN" || tag == "DBN" || tag == "DPN") )
+		b : tags( pos == ( a.pos + 1 ) && (term == "(") )
+		c : tags( pos == ( a.pos + 2 ) && (tag == "DIN" || tag == "DBN" || tag == "DPN") )
+		d : tags( pos == ( a.pos + 3 ) && (term == "and" || term == ",") )
+		e : tags( pos == ( a.pos + 4 ) && (tag == "DIN" || tag == "DBN" || tag == "DPN") )
+		f : tags( pos == ( a.pos + 5 ) && (term == ")") )
+	then
+		result.setFinal_token(a.term + " " + b.term +" " + c.term +" " + d.term +" " + e.term +" " + f.term);
+		result.setFinal_tag("DIN");
+		result.setFinal_index(a.pos + 5);
+		//System.out.println("Rule t2");
+end
+
+rule "rule t5"
+	dialect "mvel"
+	when
+		a : tags( pos == a.index && (tag == "DIN" || tag == "DBN" || tag == "DPN") )
+		b : tags( pos == ( a.pos + 1 ) && (term == "(") )
+		c : tags( pos == ( a.pos + 2 ) && (tag == "DIN" || tag == "DBN" || tag == "DPN") )
+		d : tags( pos == ( a.pos + 3 ) && (term == ")" ) )
+		
+	then
+		result.setFinal_token(a.term + " " + b.term +" " + c.term +" " + d.term );
+		result.setFinal_tag("DIN");
+		result.setFinal_index(a.pos + 3);
+		//System.out.println("Rule t5");
+end
+
+rule "rule t6"
+	dialect "mvel"
+	when
+		a : tags( pos == index && index >= 2 && (tag == "DIN" || tag == "DBN") )
+		b : tags( pos == ( a.pos + 1 ) && (term == ")") )
+		//c : tags( pos == ( a.pos - 2 ) && (term != "antibiotics" && term != "abx" && term != "medications" && term != "meds") )
+		
+	then
+		result.setFinal_tag("MDBN");
+		result.setFinal_index(a.pos + 1);
+		//System.out.println("a.term "+a.term);
+		//System.out.println("b.term "+b.term);
+		//System.out.println("c.term "+c.term);
+		//System.out.println("Rule t6");
+end
+
+
+/*
+rule "rule 16"
+	dialect "mvel"
+	when
+		a : tags( index > "0" && pos == a.index && (token == "no" || token == "without" || token == "0" || token == "1" || token == "2" || token == "3" || token == "4" || token == "5") )
+		b : tags( pos == ( b.index +1 ) && (term == "refill" || term == "refills" || term == "refill" || term == "rf's" || term == "rf") )
+		
+	then
+		result.setFinal_token(a.term);
+		result.setFinal_tag("REFL");
+		result.setFinal_index(a.index + 1);
+end
+
+rule "rule 2"
+	dialect "mvel"
+	when
+		a : tags( index > "0" && pos == index && tag == "NUM" )
+		b : tags( pos == ( a.pos +1 ) && (tag == "UNIT" || tag == "TOD" || tag == "RUT") )
+		c : tags( pos == ( a.pos +2 ) && (term == "and" || term == ","))
+		d : tags( pos == ( a.pos +3 ) && tag == "NUM" )
+		e : tags( pos == ( a.pos +4 ) && (tag == "UNIT" || tag == "TOD" || tag == "RUT") )
+	then
+		result.setFinal_tag( "DOSE" );
+		result.setFinal_token(a.term + " " + b.term + " " + c.term + " " + d.term + " " + e.term);
+		result.setFinal_index(a.pos);
+		//System.out.println("Rule 2");
+end
+
+rule "rule 17"
+	dialect "mvel"
+	when
+		a : tags( index > "0" && pos == index && tag == "NUM" && prevTerm == ":" )
+		//b : tags( pos == ( a.pos - 1 ) && (term == ":") )
+		c : tags( pos == ( a.pos + 2 ) && (term == "refill" || term == "refills") )
+	then
+		result.setFinal_token(a.term);
+		result.setFinal_tag("REFL");
+		result.setFinal_index(a.pos);
+		//System.out.println("Rule 17");
+end
+
+
+rule "rule 3"
+	dialect "mvel"
+	when
+		a : tags( index > "0" && pos == index && tag == "NUM" )
+		b : tags( pos == ( a.pos -3 ) && (tag == "NUM") )
+		c : tags( pos == ( a.pos -2 ) && (tag == "FREQ" || tag == "TOD" || tag == "RUT") )
+		d : tags( pos == ( a.pos -1 ) && term == "and" )
+		e : tags( pos == ( a.pos +1 ) && (tag == "FREQ" || tag == "TOD" || tag == "RUT") )
+	then
+		result.setFinal_token(a.term);
+		result.setFinal_tag("DOSE");
+		result.setFinal_index(a.pos + 0);
+		//System.out.println("Rule 3");
+end
+*/
+
